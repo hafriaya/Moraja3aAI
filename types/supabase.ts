@@ -74,6 +74,54 @@ export interface Database {
         }
         Relationships: []
       }
+      flashcard_sets: {
+        Row: {
+          id: string
+          user_id: string
+          exam_source_id: string | null
+          title: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          exam_source_id?: string | null
+          title: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          exam_source_id?: string | null
+          title?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      flashcards: {
+        Row: {
+          id: string
+          set_id: string
+          front: string
+          back: string
+          is_mastered: boolean
+        }
+        Insert: {
+          id?: string
+          set_id: string
+          front: string
+          back: string
+          is_mastered?: boolean
+        }
+        Update: {
+          id?: string
+          set_id?: string
+          front?: string
+          back?: string
+          is_mastered?: boolean
+        }
+        Relationships: []
+      }
       study_materials: {
         Row: {
           id: string

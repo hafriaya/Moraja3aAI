@@ -53,15 +53,33 @@ create table public.profiles (
   created_at timestamp with time zone default now()
 );
 
--- Notifications (New)
+-- Notifications
 create table public.notifications (
   id uuid default gen_random_uuid() primary key,
-  user_id uuid, -- Mock ID support
+  user_id uuid references auth.users not null,
   title text not null,
-  message text,
-  type text check (type in ('info', 'success', 'warning', 'error')),
-  read boolean default false,
+  message text not null,
+  type text check (type in ('info', 'success', 'warning', 'error')) default 'info',
+  is_read boolean default false,
   created_at timestamp with time zone default now()
+);
+
+-- Flashcard Sets
+create table public.flashcard_sets (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid, -- "Loose reference" to allow Mock User ID (Foreign Key removed)
+  exam_source_id uuid references public.exams(id), -- Linked to the exam result
+  title text not null,
+  created_at timestamp with time zone default now()
+);
+
+-- Flashcards
+create table public.flashcards (
+  id uuid default gen_random_uuid() primary key,
+  set_id uuid references public.flashcard_sets(id) on delete cascade,
+  front text not null, -- The Question/Concept
+  back text not null,  -- The Answer/Definition
+  is_mastered boolean default false
 );
 
 -- RLS Policies (Open for Dev - Secure later!)
@@ -70,10 +88,19 @@ alter table public.document_sections enable row level security;
 alter table public.exams enable row level security;
 alter table public.questions enable row level security;
 alter table public.profiles enable row level security;
+alter table public.notifications enable row level security;
+alter table public.flashcard_sets enable row level security;
+alter table public.flashcards enable row level security;
 
 -- Policy: Allow all for now (simulating "public" access for dev)
 create policy "Allow all access to study_materials" on public.study_materials for all using (true) with check (true);
-create policy "Allow all access to document_sections" on public.document_sections for all using (true) with check (true);
 create policy "Allow all access to exams" on public.exams for all using (true) with check (true);
 create policy "Allow all access to questions" on public.questions for all using (true) with check (true);
 create policy "Allow all access to profiles" on public.profiles for all using (true) with check (true);
+create policy "Allow all access to notifications" on public.notifications for all using (true) with check (true);
+
+-- Drop restrictive policies if they exist (to avoid conflicts in future runs, though duplicate policy names usually error)
+-- We will just add the permissive ones. Postgres policies are OR-ed.
+create policy "Allow all access to flashcard_sets" on public.flashcard_sets for all using (true) with check (true);
+create policy "Allow all access to flashcards" on public.flashcards for all using (true) with check (true);
+create policy "Allow all access to document_sections" on public.document_sections for all using (true) with check (true);
