@@ -8,13 +8,19 @@ import { useRouter } from 'next/navigation'
 interface CreateTestModalProps {
     isOpen: boolean
     onClose: () => void
+    initialMaterialId?: string
+    initialTitle?: string
 }
 
-export default function CreateTestModal({ isOpen, onClose }: CreateTestModalProps) {
+export default function CreateTestModal({ isOpen, onClose, initialMaterialId, initialTitle }: CreateTestModalProps) {
     const router = useRouter()
     const [file, setFile] = useState<File | null>(null)
     const [status, setStatus] = useState<'idle' | 'uploading' | 'generating' | 'done'>('idle')
     const [error, setError] = useState<string | null>(null)
+
+    // Reset state when opening, but respect initial props
+    // We use a useEffect or just logic inside render if we want it to react to open changes
+    // But simplistic approach: check if we have initialMaterialId
 
     if (!isOpen) return null
 
@@ -26,22 +32,29 @@ export default function CreateTestModal({ isOpen, onClose }: CreateTestModalProp
     }
 
     const handleSubmit = async () => {
-        if (!file) {
+        if (!file && !initialMaterialId) {
             setError('Please select a file.')
             return
         }
 
         try {
-            setStatus('uploading')
-            const formData = new FormData()
-            formData.append('file', file)
+            let materialId = initialMaterialId
 
-            const uploadRes = await uploadStudyMaterial(formData)
-            if (!uploadRes.success) throw new Error('Upload failed')
+            if (!materialId && file) {
+                setStatus('uploading')
+                const formData = new FormData()
+                formData.append('file', file)
+
+                const uploadRes = await uploadStudyMaterial(formData)
+                if (!uploadRes.success) throw new Error('Upload failed')
+                materialId = uploadRes.materialId
+            }
+
+            if (!materialId) throw new Error('No material ID avaiable')
 
             setStatus('generating')
             // Delay for effect if needed, but the action does the work
-            const examRes = await generateExam(uploadRes.materialId)
+            const examRes = await generateExam(materialId)
 
             if (examRes.success) {
                 setStatus('done')
@@ -66,25 +79,33 @@ export default function CreateTestModal({ isOpen, onClose }: CreateTestModalProp
 
                 {status === 'idle' && (
                     <div className="space-y-6">
-                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:bg-gray-50 transition-colors cursor-pointer relative">
-                            <input
-                                type="file"
-                                accept=".pdf,.txt,.md"
-                                onChange={handleFileChange}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            />
-                            <div className="w-12 h-12 bg-indigo-50 text-[var(--primary-blue)] rounded-full flex items-center justify-center mx-auto mb-3">
-                                <span className="material-symbols-outlined">upload_file</span>
+                        {initialMaterialId ? (
+                            <div className="text-center p-6 bg-indigo-50 rounded-xl border border-indigo-100">
+                                <span className="material-symbols-outlined text-4xl text-[var(--primary-blue)] mb-2">library_books</span>
+                                <h4 className="font-bold text-gray-800">Generate from Library</h4>
+                                <p className="text-sm text-gray-600 mt-1">Using: <span className="font-semibold">{initialTitle || 'Selected Material'}</span></p>
                             </div>
-                            {file ? (
-                                <p className="font-medium text-gray-800">{file.name}</p>
-                            ) : (
-                                <>
-                                    <p className="font-medium text-gray-800">Click to upload study material</p>
-                                    <p className="text-sm text-gray-500 mt-1">PDF, TXT, or MD (Max 10MB)</p>
-                                </>
-                            )}
-                        </div>
+                        ) : (
+                            <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:bg-gray-50 transition-colors cursor-pointer relative">
+                                <input
+                                    type="file"
+                                    accept=".pdf,.txt,.md"
+                                    onChange={handleFileChange}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                />
+                                <div className="w-12 h-12 bg-indigo-50 text-[var(--primary-blue)] rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <span className="material-symbols-outlined">upload_file</span>
+                                </div>
+                                {file ? (
+                                    <p className="font-medium text-gray-800">{file.name}</p>
+                                ) : (
+                                    <>
+                                        <p className="font-medium text-gray-800">Click to upload study material</p>
+                                        <p className="text-sm text-gray-500 mt-1">PDF, TXT, or MD (Max 10MB)</p>
+                                    </>
+                                )}
+                            </div>
+                        )}
 
                         {error && (
                             <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg flex items-center gap-2">
@@ -95,10 +116,10 @@ export default function CreateTestModal({ isOpen, onClose }: CreateTestModalProp
 
                         <button
                             onClick={handleSubmit}
-                            disabled={!file}
+                            disabled={!file && !initialMaterialId}
                             className="w-full py-3 bg-[var(--primary-blue)] text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-200"
                         >
-                            Generate Exam
+                            {initialMaterialId ? 'Generate Exam' : 'Upload & Generate'}
                         </button>
                     </div>
                 )}

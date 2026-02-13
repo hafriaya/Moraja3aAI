@@ -15,24 +15,19 @@ export async function getDashboardStats() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
-    if (!exams) {
-        return {
-            weeklyAverage: 0,
-            examsTaken: 0,
-            recentActivity: []
-        }
-    }
+    // 4. Construct Return Object
+    const safeExams = exams || []
 
-    // Calculate Weekly Average (mock calculation for MVP, simply average of all completed exams)
-    const completedExams = exams.filter(e => e.status === 'completed' && e.score !== null)
+    // Calculate Weekly Average
+    const completedExams = safeExams.filter(e => e.status === 'completed' && e.score !== null)
     const totalScore = completedExams.reduce((acc, curr) => acc + (curr.score || 0), 0)
     const weeklyAverage = completedExams.length > 0 ? Math.round(totalScore / completedExams.length) : 0
 
     // Format Recent Activity
-    const recentActivity = exams.slice(0, 5).map(exam => ({
+    const recentActivity = safeExams.slice(0, 5).map(exam => ({
         id: exam.id,
-        title: exam.title || `Exam ${exam.id.slice(0, 4)}`, // Fallback title
-        subject: 'General', // We might need to fetch material title join for this
+        title: exam.title || `Exam ${exam.id.slice(0, 4)}`,
+        subject: 'General',
         date: new Date(exam.created_at || new Date().toISOString()).toLocaleDateString(),
         score: exam.score,
         status: exam.status
@@ -57,7 +52,7 @@ export async function getDashboardStats() {
         profile,
         notifications: notifications || [],
         weeklyAverage,
-        examsTaken: exams.length,
+        examsTaken: safeExams.length,
         recentActivity
     }
 }

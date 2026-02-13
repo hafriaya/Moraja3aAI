@@ -57,3 +57,39 @@ export async function uploadStudyMaterial(formData: FormData) {
 
     return { success: true, materialId: materialData.id }
 }
+
+export async function getMaterials() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    // Support Mock User for Dev
+    const userId = user?.id || '00000000-0000-0000-0000-000000000000'
+
+    const { data, error } = await supabase
+        .from('study_materials')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching materials:', error)
+        return []
+    }
+
+    return data
+}
+
+export async function deleteMaterial(id: string) {
+    const supabase = await createClient()
+
+    // 1. Get material to find file path (if we were using real storage paths efficiently)
+    // For now, we just delete the record. In a real app, delete from Storage too.
+
+    const { error } = await supabase
+        .from('study_materials')
+        .delete()
+        .eq('id', id)
+
+    if (error) throw new Error(error.message)
+    return { success: true }
+}
