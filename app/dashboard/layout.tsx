@@ -31,7 +31,7 @@ export default function DashboardLayout({
                             <span className="material-symbols-outlined">monitoring</span>
                             Analytics
                         </Link>
-                        <Link href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-medium transition-colors">
+                        <Link href="/settings" className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-medium transition-colors">
                             <span className="material-symbols-outlined">settings</span>
                             Settings
                         </Link>

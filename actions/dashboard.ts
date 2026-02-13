@@ -38,7 +38,24 @@ export async function getDashboardStats() {
         status: exam.status
     }))
 
+    // Fetch Profile
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+    // Fetch Notifications
+    const { data: notifications } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5)
+
     return {
+        profile,
+        notifications: notifications || [],
         weeklyAverage,
         examsTaken: exams.length,
         recentActivity

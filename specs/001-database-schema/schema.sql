@@ -43,11 +43,24 @@ create table public.questions (
   order_index integer
 );
 
--- Profiles (Optional but good to have)
+-- Profiles
 create table public.profiles (
   id uuid primary key, -- References auth.users
   full_name text,
   role text,
+  avatar_url text, -- New
+  grade_level text, -- New
+  created_at timestamp with time zone default now()
+);
+
+-- Notifications (New)
+create table public.notifications (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid, -- Mock ID support
+  title text not null,
+  message text,
+  type text check (type in ('info', 'success', 'warning', 'error')),
+  read boolean default false,
   created_at timestamp with time zone default now()
 );
 

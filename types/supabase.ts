@@ -14,18 +14,24 @@ export interface Database {
           id: string
           full_name: string | null
           role: 'student' | 'teacher' | null
+          avatar_url: string | null
+          grade_level: string | null
           created_at: string
         }
         Insert: {
           id: string
           full_name?: string | null
           role?: 'student' | 'teacher' | null
+          avatar_url?: string | null
+          grade_level?: string | null
           created_at?: string
         }
         Update: {
           id?: string
           full_name?: string | null
           role?: 'student' | 'teacher' | null
+          avatar_url?: string | null
+          grade_level?: string | null
           created_at?: string
         }
         Relationships: [
@@ -37,6 +43,36 @@ export interface Database {
             referencedColumns: ["id"]
           }
         ]
+      }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string | null
+          title: string
+          message: string | null
+          type: 'info' | 'success' | 'warning' | 'error' | null
+          read: boolean | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          title: string
+          message?: string | null
+          type?: 'info' | 'success' | 'warning' | 'error' | null
+          read?: boolean | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          title?: string
+          message?: string | null
+          type?: 'info' | 'success' | 'warning' | 'error' | null
+          read?: boolean | null
+          created_at?: string
+        }
+        Relationships: []
       }
       study_materials: {
         Row: {

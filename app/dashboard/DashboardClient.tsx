@@ -3,18 +3,22 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import CreateTestModal from '@/components/CreateTestModal'
+import ProfileMenu from '@/components/dashboard/ProfileMenu'
+import NotificationsPopover from '@/components/dashboard/NotificationsPopover'
 
 interface DashboardClientProps {
     stats: {
         weeklyAverage: number
         examsTaken: number
         recentActivity: any[]
+        profile: any
+        notifications: any[]
     }
 }
 
 export default function DashboardClient({ stats }: DashboardClientProps) {
     const [isIdModalOpen, setIsModalOpen] = useState(false)
-    const { weeklyAverage, examsTaken, recentActivity } = stats
+    const { weeklyAverage, examsTaken, recentActivity, profile, notifications } = stats
 
     return (
         <>
@@ -22,23 +26,16 @@ export default function DashboardClient({ stats }: DashboardClientProps) {
 
             {/* Sticky Header from Spec */}
             <header className="h-20 bg-white/80 backdrop-blur-md sticky top-0 z-10 border-b border-gray-100 px-8 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-800">Welcome back, Alex! 👋</h2>
+                <h2 className="text-xl font-bold text-gray-800">Welcome back, {profile?.full_name?.split(' ')[0] || 'Student'}! 👋</h2>
                 <div className="flex items-center gap-6">
                     <div className="relative hidden sm:block">
                         <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
                         <input className="pl-10 pr-4 py-2 rounded-full border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-blue)] w-64 transition-all" placeholder="Search topics, exams..." type="text" />
                     </div>
-                    <button className="relative p-2 rounded-full hover:bg-gray-100 text-gray-500 transition-colors">
-                        <span className="material-symbols-outlined">notifications</span>
-                        <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-                    </button>
-                    <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
-                        <div className="text-right hidden sm:block">
-                            <p className="text-sm font-bold text-gray-800">Alex Chen</p>
-                            <p className="text-xs text-gray-500">Grade 11 • AP Scholar</p>
-                        </div>
-                        <img alt="Profile" className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9tkXeSLxClIxs2tTw1YWpI01--ezh6tpdp1U_C8baWkPhSOW2rfQzMWSM2gExG_5o7m4DOjpkncVPMPu74xo2kxJOsDhjyPqb1wKCHNNxXe7VGAjofWuoctou_7A4uIL4klMmiV6btZTPDXY8cOvv8cLDdqOiRIvPMuZUTAHm07y4JoPsKx8NmwpTpQcL6hohvBoy6q97jxVlpW3EDCx0qcx08cBu_MraywGN-gc0DnEqNpQ_ZXJSiIivLP8B59TdsLuizOtxHto" />
-                    </div>
+
+                    <NotificationsPopover notifications={notifications} />
+
+                    <ProfileMenu profile={profile} />
                 </div>
             </header>
 
