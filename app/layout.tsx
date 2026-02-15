@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ['latin'] })
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' })
 
 export const metadata: Metadata = {
-  title: 'ExamSim',
+  title: 'Moraja3aAI',
   description: 'AI-powered Exam Simulation',
 }
 
