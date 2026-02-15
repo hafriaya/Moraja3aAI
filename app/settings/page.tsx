@@ -80,7 +80,7 @@ export default function SettingsPage() {
             <nav className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10">
                 <div className="flex items-center gap-3">
                     <span className="material-symbols-outlined text-[var(--primary-blue)] text-3xl">school</span>
-                    <span className="font-bold text-xl tracking-tight text-gray-800">ExamSim AI</span>
+                    <span className="font-bold text-xl tracking-tight text-gray-800">Moraja3aAI</span>
                 </div>
                 <Link href="/dashboard" className="text-sm font-bold text-gray-500 hover:text-[var(--primary-blue)]">
                     Back to Dashboard
