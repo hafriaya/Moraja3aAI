@@ -12,7 +12,7 @@ export default function Home() {
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[var(--primary-color)] text-3xl">school</span>
-              <span className="text-xl font-bold tracking-tight text-gray-900">ExamSim AI</span>
+              <span className="text-xl font-bold tracking-tight text-gray-900">Moraja3aAI</span>
             </div>
             <nav className="hidden md:flex gap-8">
               {['Features', 'How it Works', 'Pricing'].map((item) => (
@@ -41,7 +41,7 @@ export default function Home() {
 
       <footer className="bg-gray-50 border-t border-gray-200 py-12 mt-12">
         <div className="max-w-7xl mx-auto px-4 text-center text-gray-400 text-sm">
-          <p>&copy; {new Date().getFullYear()} ExamSim AI. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Moraja3aAI. All rights reserved.</p>
         </div>
       </footer>
     </div>
