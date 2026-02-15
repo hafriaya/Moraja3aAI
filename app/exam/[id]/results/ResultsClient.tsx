@@ -56,7 +56,7 @@ export default function ResultsClient({ exam }: ResultsClientProps) {
                     <div className="flex justify-between h-16">
                         <div className="flex items-center gap-3">
                             <span className="material-symbols-outlined text-[var(--primary-color)] text-3xl">school</span>
-                            <span className="font-bold text-xl tracking-tight text-[var(--text-main)]">ExamSim AI</span>
+                            <span className="font-bold text-xl tracking-tight text-[var(--text-main)]">Moraja3aAI</span>
                         </div>
                         <div className="flex items-center gap-6">
                             <Link className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--primary-color)]" href="/dashboard">Dashboard</Link>
