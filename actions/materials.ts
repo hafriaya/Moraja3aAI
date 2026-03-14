@@ -2,6 +2,56 @@
 
 import { createClient } from '@/utils/supabase/server'
 
+async function extractTextFromPDF(buffer: Buffer): Promise<string> {
+    return new Promise((resolve, reject) => {
+        try {
+            const PDFParser = require('pdf2json')
+            const pdfParser = new PDFParser()
+            
+            // Add timeout
+            const timeout = setTimeout(() => {
+                reject(new Error('PDF parsing timeout - file may be corrupted or too complex'))
+            }, 30000)
+
+            pdfParser.on('pdfParser_dataError', (errData: any) => {
+                clearTimeout(timeout)
+                console.warn('pdf2json error:', errData.parserError)
+                reject(new Error('PDF parse error: ' + (errData.parserError || 'Unknown error')))
+            })
+
+            pdfParser.on('pdfParser_dataReady', (pdfData: any) => {
+                clearTimeout(timeout)
+                try {
+                    // Extract text from all pages
+                    const text = pdfData.Pages.map((page: any) => {
+                        if (!page.Texts || page.Texts.length === 0) return ''
+                        return page.Texts.map((textItem: any) => {
+                            if (!textItem.R || !Array.isArray(textItem.R)) return ''
+                            return textItem.R.map((r: any) => {
+                                try {
+                                    return decodeURIComponent(r.T)
+                                } catch (e) {
+                                    return r.T || ''
+                                }
+                            }).join(' ')
+                        }).join(' ')
+                    }).join('\n\n')
+
+                    console.log('✅ PDF parsed. Text extracted:', text.length, 'characters')
+                    resolve(text)
+                } catch (e) {
+                    console.error('Error processing PDF data:', e)
+                    reject(e)
+                }
+            })
+
+            pdfParser.parseBuffer(Buffer.from(buffer))
+        } catch (e) {
+            console.error('PDF parsing exception:', e)
+            reject(e)
+        }
+    })
+}
 
 export async function uploadStudyMaterial(formData: FormData) {
     const file = formData.get('file') as File
@@ -23,42 +73,24 @@ export async function uploadStudyMaterial(formData: FormData) {
         console.log('Processing file:', file.name, 'Type:', file.type, 'Size:', file.size)
 
         if (file.type === 'application/pdf') {
-            console.log('Starting PDF parsing with pdf2json...')
-
-            // Use pdf2json - Node.js native, no browser dependencies
-            const PDFParser = require('pdf2json');
-            const pdfParser = new PDFParser();
-
-            // Parse PDF and extract text
-            const pdfText = await new Promise<string>((resolve, reject) => {
-                pdfParser.on('pdfParser_dataError', (errData: any) => reject(errData.parserError));
-                pdfParser.on('pdfParser_dataReady', (pdfData: any) => {
-                    // Extract text from all pages
-                    const text = pdfData.Pages.map((page: any) => {
-                        return page.Texts.map((textItem: any) => {
-                            return textItem.R.map((r: any) => decodeURIComponent(r.T)).join(' ');
-                        }).join(' ');
-                    }).join('\n\n');
-                    resolve(text);
-                });
-
-                pdfParser.parseBuffer(new Uint8Array(buffer));
-            });
-
-            extractedText = pdfText;
-            console.log('✅ PDF parsed successfully. Text length:', extractedText.length);
+            console.log('📄 Parsing PDF with pdf2json...')
+            extractedText = await extractTextFromPDF(buffer)
 
         } else if (file.type === 'text/plain') {
             extractedText = buffer.toString('utf-8')
             console.log('Text file extracted. Length:', extractedText.length)
         } else {
-            // Fallback for other types or if extraction fails
-            console.warn('Unsupported file type for extraction:', file.type)
-            extractedText = 'Content extraction not supported for this file type.'
+            throw new Error('Unsupported file type. Please use PDF or TXT.')
         }
     } catch (e) {
         console.error('❌ TEXT EXTRACTION ERROR:', e)
-        extractedText = 'Failed to extract content: ' + (e instanceof Error ? e.message : String(e))
+        const errorMsg = e instanceof Error ? e.message : String(e)
+        throw new Error('File extraction failed: ' + errorMsg)
+    }
+
+    // Validate extracted text is substantial enough
+    if (extractedText.trim().length < 100) {
+        throw new Error('Extracted text is too short (less than 100 characters). Please use a file with more content.')
     }
 
     // 2. Upload file to Storage (Optional for MVP if we just want text, but good for reference)
@@ -89,7 +121,15 @@ export async function uploadStudyMaterial(formData: FormData) {
         .select()
         .single()
 
-    if (materialError) throw new Error(`DB Insert failed: ${materialError.message}`)
+    if (materialError) {
+        if (materialError.code === 'PGRST205') {
+            throw new Error(
+                'Database is not initialized. Run specs/001-database-schema/schema.sql in Supabase SQL Editor, then retry.'
+            )
+        }
+        console.error('Material insert error:', materialError)
+        throw new Error(`Database error: ${materialError.message}`)
+    }
 
     return { success: true, materialId: materialData.id }
 }
